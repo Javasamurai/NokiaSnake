@@ -7,8 +7,11 @@ using UnityEngine.UI;
 public class GameController : MonoBehaviour
 {
     [SerializeField] private Button startButton;
-    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private Button restartButton;
+    [SerializeField] private TextMeshProUGUI resultText;
     [SerializeField] GamePlayStruct[] gameplayStates;
+    [SerializeField] private SnakeController snake1;
+    [SerializeField] private SnakeController snake2;
 
     [Serializable]
     struct GamePlayStruct
@@ -45,17 +48,14 @@ public class GameController : MonoBehaviour
     void Start()
     {
         startButton.onClick.AddListener(StartGame);
+        restartButton.onClick.AddListener(StartGame);
+        snake1.enabled = false;
+        snake2.enabled = false;
     }
     
     public bool IsPlaying()
     {
         return _gameplayState == GameplayState.Playing;
-    }
-    
-    public void UpdateScore(int points)
-    {
-        score += points;
-        scoreText.text = score.ToString();
     }
     
     private void SwitchGameplayState(GameplayState newGameplayState)
@@ -81,11 +81,40 @@ public class GameController : MonoBehaviour
     private void StartGame()
     {
         SwitchGameplayState(GameplayState.Playing);
+        snake1.enabled = true;
+        snake2.enabled = true;
+        snake1.StartGame();
+        snake2.StartGame();
     }
 
     public void EndGame()
     {
         Debug.Log("Game Over");
+        string winner;
+        if (snake1.score > snake2.score)
+        {
+            winner = snake1.snakeName;
+        }
+        else
+        {
+            if (snake1.score < snake2.score)
+            {
+                winner = snake2.snakeName;
+            }
+            else
+            {
+                winner = "Nobody";
+            }
+        }
+        resultText.text = winner + " wins!";
         SwitchGameplayState(GameplayState.GameOver);
+        snake1.ClearSnake();
+        snake2.ClearSnake();
+    }
+
+    private void OnDestroy()
+    {
+        startButton.onClick.RemoveListener(StartGame);
+        restartButton.onClick.RemoveListener(StartGame);
     }
 }
